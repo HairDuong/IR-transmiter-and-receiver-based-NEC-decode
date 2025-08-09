@@ -1,0 +1,21 @@
+
+State Machine - |top_ir|state
+Name state.S_RECEIVE_CMD state.SEND state.LOAD state.IDLE 
+state.IDLE 0 0 0 0 
+state.LOAD 0 0 1 1 
+state.SEND 0 1 0 1 
+state.S_RECEIVE_CMD 1 0 0 1 
+
+State Machine - |top_ir|UART_TX:uart_tx_inst|state
+Name state.STOP state.DATA state.START state.IDLE 
+state.IDLE 0 0 0 0 
+state.START 0 0 1 1 
+state.DATA 0 1 0 1 
+state.STOP 1 0 0 1 
+
+State Machine - |top_ir|UART_RX:uart_rx_inst|state
+Name state.11 state.10 state.01 state.00 
+state.00 0 0 0 0 
+state.01 0 0 1 1 
+state.10 0 1 0 1 
+state.11 1 0 0 1 

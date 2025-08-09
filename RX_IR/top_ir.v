@@ -1,0 +1,77 @@
+module top_ir (
+    input clk,
+    input rst,
+    input rx_pin,
+    output tx_pin
+);
+
+    // Internal signals
+    wire [7:0] rx_data;
+    wire rx_valid;
+    reg [7:0] tx_data, buffer;
+    reg tx_start;
+    wire tx_done;
+
+    // State to control TX start
+    reg [1:0] state;
+    localparam IDLE = 2'd0,
+               LOAD = 2'd1,
+               SEND = 2'd2,
+					S_RECEIVE_CMD =2'd3;
+
+    // UART RX instance
+    UART_RX uart_rx_inst (
+        .clock(clk),
+        .reset(rst),
+        .rx(rx_pin),
+        .o_rdat(rx_data),
+        .data_valid(rx_valid)
+    );
+
+    // UART TX instance
+    UART_TX uart_tx_inst (
+        .clk(clk),
+        .rst(rst),
+        .i_valid(tx_start),
+        .i_data_in(tx_data),
+        .o_Tx_serial(tx_pin),
+        .tx_done(tx_done)
+    );
+
+    // Simple FSM to manage TX trigger
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            state <= IDLE;
+            tx_data <= 8'h00;
+            tx_start <= 0;
+        end else begin
+            case (state)
+                IDLE: begin
+                    if (rx_valid) begin
+						      buffer <= rx_data;
+                        
+                        state <= S_RECEIVE_CMD;
+                    end
+                end
+					 S_RECEIVE_CMD:
+					 if(rx_valid) 
+						begin
+						tx_data <= rx_data;
+						state <= LOAD;
+						end
+
+                LOAD: begin
+                    tx_start <= 1;  // Chỉ bật 1 chu kỳ
+                    state <= SEND;
+                end
+
+                SEND: begin
+                    tx_start <= 0;
+                    if (tx_done)
+                        state <= IDLE;
+                end
+            endcase
+        end
+    end
+
+endmodule
